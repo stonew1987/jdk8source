@@ -4,6 +4,12 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
+/**
+ * 1、ArrayList是可以动态增长和缩减的索引序列，它是基于数组实现的List类。
+ * 2、该类封装了一个动态再分配的Object[]数组，每一个类对象都有一个capacity属性，表示它们所封装的Object[]数组的长度，当向ArrayList中添加元素时，该属性值会自动增加。
+ * 3、如果想ArrayList中添加大量元素，可使用ensureCapacity方法一次性增加capacity，可以减少增加重分配的次数提高性能。
+ *
+ */
 
 public class ArrayList<E> extends AbstractList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable
@@ -21,23 +27,17 @@ public class ArrayList<E> extends AbstractList<E>
     private static final Object[] EMPTY_ELEMENTDATA = {};
 
     /**
-     * 用于默认大小的空实例的共享空数组实例。
-     * 我们将其与EMPTY_ELEMENTDATA区分开来， TODO
+     * 缺省空对象数组
      */
     private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
     /**
-     * The array buffer into which the elements of the ArrayList are stored.
-     * The capacity of the ArrayList is the length of this array buffer. Any
-     * empty ArrayList with elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA
-     * will be expanded to DEFAULT_CAPACITY when the first element is added.
+     * 元素数组
      */
     transient Object[] elementData; // non-private to simplify nested class access
 
     /**
-     * The size of the ArrayList (the number of elements it contains).
-     *
-     * @serial
+     * ArrayList中实际数据的数量
      */
     private int size;
 
@@ -46,36 +46,46 @@ public class ArrayList<E> extends AbstractList<E>
      *
      */
     public ArrayList(int initialCapacity) {
+        //初始容量大于0,实例化数组
         if (initialCapacity > 0) {
             this.elementData = new Object[initialCapacity];
-        } else if (initialCapacity == 0) {
+        }
+        //初始化等于0，将空数组赋给elementData
+        else if (initialCapacity == 0) {
             this.elementData = EMPTY_ELEMENTDATA;
-        } else {
+        }
+        else {
             throw new IllegalArgumentException("Illegal Capacity: "+
                                                initialCapacity);
         }
     }
 
     /**
-     * Constructs an empty list with an initial capacity of ten.
+     * 无参构造函数,默认容量为10
      */
     public ArrayList() {
+
+        //DEFAULTCAPACITY_EMPTY_ELEMENTDATA 是个空的Object[]， 将elementData初始化，elementData也是个Object[]类型。
+        // 空的Object[]会给默认大小10 ? 啥时候赋值大小？ TODO
         this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
     }
 
     /**
-     * Constructs a list containing the elements of the specified
-     * collection, in the order they are returned by the collection's
-     * iterator.
+     *  Strudent exends Person
+     *  ArrayList<Person>、 Person这里就是泛型
+     *  一个Collection<Student>
+     *  由于这个Student继承了Person，那么根据这个构造方法，可以把这个Collection<Student>转换为ArrayList<Sudent> 这就是这个构造方法的作用
      *
-     * @param c the collection whose elements are to be placed into this list
-     * @throws NullPointerException if the specified collection is null
      */
     public ArrayList(Collection<? extends E> c) {
+        //转换为数组
         elementData = c.toArray();
+        //获取数组长度赋值给size ,并判断长度是否为0
         if ((size = elementData.length) != 0) {
             // c.toArray might (incorrectly) not return Object[] (see 6260652)
+            //每个集合的toarray()的实现方法不一样，所以需要判断一下，如果不是Object[].class类型，那么就需要使用ArrayList中的方法去改造一下。
             if (elementData.getClass() != Object[].class)
+                //复制指定数组，使elementData具有指定长度
                 elementData = Arrays.copyOf(elementData, size, Object[].class);
         } else {
             // replace with empty array.
@@ -117,19 +127,26 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
+    /**
+     * 判断当前数组是否需要扩容
+     * @param minCapacity
+     */
     private void ensureCapacityInternal(int minCapacity) {
+        //若当前数组未空
         if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+            //因为如果是空的话，minCapacity=size+1；其实就是等于1
+            //空的数组没有长度就存放不了，所以就将minCapacity设置成默认大小，但是带这里，还没有真正的初始化这个elementData的大小
             minCapacity = Math.max(DEFAULT_CAPACITY, minCapacity);
         }
-
+        //确认实际的容量，上面只是将minCapacity=10，这个方法就是真正的判断elementData是否够用
         ensureExplicitCapacity(minCapacity);
     }
 
     private void ensureExplicitCapacity(int minCapacity) {
         modCount++;
-
-        // overflow-conscious code
+        // 若minCapacity 大于 数组元素的长度，则数组需要进行扩容
         if (minCapacity - elementData.length > 0)
+            // 扩容
             grow(minCapacity);
     }
 
@@ -149,50 +166,53 @@ public class ArrayList<E> extends AbstractList<E>
      */
     private void grow(int minCapacity) {
         // overflow-conscious code
+        //将扩充前的elementData大小给oldCapacity
         int oldCapacity = elementData.length;
+        //newCapacity就是1.5倍的oldCapacity
         int newCapacity = oldCapacity + (oldCapacity >> 1);
+        //适应于elementData就空数组的时候，length=0，那么oldCapacity=0，newCapacity=0，所以这个判断成立，在这里就是真正的初始化elementData的大小了，就是为10
         if (newCapacity - minCapacity < 0)
             newCapacity = minCapacity;
+        //如果newCapacity超过了最大的容量限制，就调用hugeCapacity，也就是将能给的最大值给newCapacity
         if (newCapacity - MAX_ARRAY_SIZE > 0)
             newCapacity = hugeCapacity(minCapacity);
-        // minCapacity is usually close to size, so this is a win:
+        // 数组元素拷贝
         elementData = Arrays.copyOf(elementData, newCapacity);
     }
 
+    /**
+     * 赋值数组最大容量
+     * @param minCapacity
+     * @return
+     */
     private static int hugeCapacity(int minCapacity) {
         if (minCapacity < 0) // overflow
             throw new OutOfMemoryError();
+
+        // 如果minCapacity都大于MAX_ARRAY_SIZE，那么就Integer.MAX_VALUE返回，反之将MAX_ARRAY_SIZE返回。
+        // 因为maxCapacity是三倍的minCapacity，可能扩充的太大了，就用minCapacity来判断了。
+        //Integer.MAX_VALUE:2147483647   MAX_ARRAY_SIZE：2147483639  也就是说最大也就能给到第一个数值。还是超过了这个限制，就要溢出了。相当于arraylist给了两层防护。
         return (minCapacity > MAX_ARRAY_SIZE) ?
             Integer.MAX_VALUE :
             MAX_ARRAY_SIZE;
     }
 
     /**
-     * Returns the number of elements in this list.
-     *
-     * @return the number of elements in this list
+     * 获取数组大小
      */
     public int size() {
         return size;
     }
 
     /**
-     * Returns <tt>true</tt> if this list contains no elements.
-     *
-     * @return <tt>true</tt> if this list contains no elements
+     * 判断数组是否为空
      */
     public boolean isEmpty() {
         return size == 0;
     }
 
     /**
-     * Returns <tt>true</tt> if this list contains the specified element.
-     * More formally, returns <tt>true</tt> if and only if this list contains
-     * at least one element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
-     *
-     * @param o element whose presence in this list is to be tested
-     * @return <tt>true</tt> if this list contains the specified element
+     * 判断数组是否包含当前元素
      */
     public boolean contains(Object o) {
         return indexOf(o) >= 0;
@@ -347,12 +367,10 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Appends the specified element to the end of this list.
-     *
-     * @param e element to be appended to this list
-     * @return <tt>true</tt> (as specified by {@link Collection#add})
+     * 添加一个特定的元素到list的末尾
      */
     public boolean add(E e) {
+        //确定内部容量是否够了，size是数组中数据的个数，因为要添加一个元素，先判断size+1的这个个数数组能否放得下，就在这个方法中去判断是否数组.length是否够用了。
         ensureCapacityInternal(size + 1);  // Increments modCount!!
         elementData[size++] = e;
         return true;
