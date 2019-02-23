@@ -1,62 +1,8 @@
-/*
- * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
+
 
 package java.util;
 
 /**
- * This class provides a skeletal implementation of the <tt>List</tt>
- * interface to minimize the effort required to implement this interface
- * backed by a "sequential access" data store (such as a linked list).  For
- * random access data (such as an array), <tt>AbstractList</tt> should be used
- * in preference to this class.<p>
- *
- * This class is the opposite of the <tt>AbstractList</tt> class in the sense
- * that it implements the "random access" methods (<tt>get(int index)</tt>,
- * <tt>set(int index, E element)</tt>, <tt>add(int index, E element)</tt> and
- * <tt>remove(int index)</tt>) on top of the list's list iterator, instead of
- * the other way around.<p>
- *
- * To implement a list the programmer needs only to extend this class and
- * provide implementations for the <tt>listIterator</tt> and <tt>size</tt>
- * methods.  For an unmodifiable list, the programmer need only implement the
- * list iterator's <tt>hasNext</tt>, <tt>next</tt>, <tt>hasPrevious</tt>,
- * <tt>previous</tt> and <tt>index</tt> methods.<p>
- *
- * For a modifiable list the programmer should additionally implement the list
- * iterator's <tt>set</tt> method.  For a variable-size list the programmer
- * should additionally implement the list iterator's <tt>remove</tt> and
- * <tt>add</tt> methods.<p>
- *
- * The programmer should generally provide a void (no argument) and collection
- * constructor, as per the recommendation in the <tt>Collection</tt> interface
- * specification.<p>
- *
- * This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
  * @author  Josh Bloch
  * @author  Neal Gafter
  * @see Collection
