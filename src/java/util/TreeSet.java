@@ -1,159 +1,46 @@
-/*
- * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
 
 package java.util;
 
 /**
- * A {@link NavigableSet} implementation based on a {@link TreeMap}.
- * The elements are ordered using their {@linkplain Comparable natural
- * ordering}, or by a {@link Comparator} provided at set creation
- * time, depending on which constructor is used.
- *
- * <p>This implementation provides guaranteed log(n) time cost for the basic
- * operations ({@code add}, {@code remove} and {@code contains}).
- *
- * <p>Note that the ordering maintained by a set (whether or not an explicit
- * comparator is provided) must be <i>consistent with equals</i> if it is to
- * correctly implement the {@code Set} interface.  (See {@code Comparable}
- * or {@code Comparator} for a precise definition of <i>consistent with
- * equals</i>.)  This is so because the {@code Set} interface is defined in
- * terms of the {@code equals} operation, but a {@code TreeSet} instance
- * performs all element comparisons using its {@code compareTo} (or
- * {@code compare}) method, so two elements that are deemed equal by this method
- * are, from the standpoint of the set, equal.  The behavior of a set
- * <i>is</i> well-defined even if its ordering is inconsistent with equals; it
- * just fails to obey the general contract of the {@code Set} interface.
- *
- * <p><strong>Note that this implementation is not synchronized.</strong>
- * If multiple threads access a tree set concurrently, and at least one
- * of the threads modifies the set, it <i>must</i> be synchronized
- * externally.  This is typically accomplished by synchronizing on some
- * object that naturally encapsulates the set.
- * If no such object exists, the set should be "wrapped" using the
- * {@link Collections#synchronizedSortedSet Collections.synchronizedSortedSet}
- * method.  This is best done at creation time, to prevent accidental
- * unsynchronized access to the set: <pre>
- *   SortedSet s = Collections.synchronizedSortedSet(new TreeSet(...));</pre>
- *
- * <p>The iterators returned by this class's {@code iterator} method are
- * <i>fail-fast</i>: if the set is modified at any time after the iterator is
- * created, in any way except through the iterator's own {@code remove}
- * method, the iterator will throw a {@link ConcurrentModificationException}.
- * Thus, in the face of concurrent modification, the iterator fails quickly
- * and cleanly, rather than risking arbitrary, non-deterministic behavior at
- * an undetermined time in the future.
- *
- * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
- * as it is, generally speaking, impossible to make any hard guarantees in the
- * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw {@code ConcurrentModificationException} on a best-effort basis.
- * Therefore, it would be wrong to write a program that depended on this
- * exception for its correctness:   <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
- * @param <E> the type of elements maintained by this set
- *
- * @author  Josh Bloch
- * @see     Collection
- * @see     Set
- * @see     HashSet
- * @see     Comparable
- * @see     Comparator
- * @see     TreeMap
- * @since   1.2
+ * 不保证元素的添加顺序，但是会对集合中的元素进行排序。底层采用 红-黑 树算法
+ * TreeSet是基于TreeMap实现的。TreeSet中的元素支持2种排序方式：自然排序 或者 根据创建TreeSet 时提供的 Comparator 进行排序。这取决于使用的构造方法
  */
 
 public class TreeSet<E> extends AbstractSet<E>
     implements NavigableSet<E>, Cloneable, java.io.Serializable
 {
     /**
-     * The backing map.
+     * NavigableMap对象
      */
     private transient NavigableMap<E,Object> m;
 
-    // Dummy value to associate with an Object in the backing Map
+    // TreeSet是通过TreeMap实现的，
+    // PRESENT是键-值对中的值。
     private static final Object PRESENT = new Object();
 
     /**
-     * Constructs a set backed by the specified navigable map.
+     * 将TreeMap赋值给 "NavigableMap对象m"
      */
     TreeSet(NavigableMap<E,Object> m) {
         this.m = m;
     }
 
     /**
-     * Constructs a new, empty tree set, sorted according to the
-     * natural ordering of its elements.  All elements inserted into
-     * the set must implement the {@link Comparable} interface.
-     * Furthermore, all such elements must be <i>mutually
-     * comparable</i>: {@code e1.compareTo(e2)} must not throw a
-     * {@code ClassCastException} for any elements {@code e1} and
-     * {@code e2} in the set.  If the user attempts to add an element
-     * to the set that violates this constraint (for example, the user
-     * attempts to add a string element to a set whose elements are
-     * integers), the {@code add} call will throw a
-     * {@code ClassCastException}.
+     * 不带参数的构造函数。创建一个空的TreeMap.
      */
     public TreeSet() {
         this(new TreeMap<E,Object>());
     }
 
     /**
-     * Constructs a new, empty tree set, sorted according to the specified
-     * comparator.  All elements inserted into the set must be <i>mutually
-     * comparable</i> by the specified comparator: {@code comparator.compare(e1,
-     * e2)} must not throw a {@code ClassCastException} for any elements
-     * {@code e1} and {@code e2} in the set.  If the user attempts to add
-     * an element to the set that violates this constraint, the
-     * {@code add} call will throw a {@code ClassCastException}.
-     *
-     * @param comparator the comparator that will be used to order this set.
-     *        If {@code null}, the {@linkplain Comparable natural
-     *        ordering} of the elements will be used.
+     * 带比较器的构造函数。
      */
     public TreeSet(Comparator<? super E> comparator) {
         this(new TreeMap<>(comparator));
     }
 
     /**
-     * Constructs a new tree set containing the elements in the specified
-     * collection, sorted according to the <i>natural ordering</i> of its
-     * elements.  All elements inserted into the set must implement the
-     * {@link Comparable} interface.  Furthermore, all such elements must be
-     * <i>mutually comparable</i>: {@code e1.compareTo(e2)} must not throw a
-     * {@code ClassCastException} for any elements {@code e1} and
-     * {@code e2} in the set.
-     *
-     * @param c collection whose elements will comprise the new set
-     * @throws ClassCastException if the elements in {@code c} are
-     *         not {@link Comparable}, or are not mutually comparable
-     * @throws NullPointerException if the specified collection is null
+     * 创建TreeSet，并将集合c中的全部元素都添加到TreeSet中
      */
     public TreeSet(Collection<? extends E> c) {
         this();

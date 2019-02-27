@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 1997, 2014, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
 
 package java.util;
 
@@ -31,81 +7,14 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * A Red-Black tree based {@link NavigableMap} implementation.
- * The map is sorted according to the {@linkplain Comparable natural
- * ordering} of its keys, or by a {@link Comparator} provided at map
- * creation time, depending on which constructor is used.
+ * 1、TreeMap集合是基于红黑树（Red-Black tree）的 NavigableMap实现
+ * 2、可排序 （通过构造方法指定）
+ *     方式1：根据其键的自然顺序进行排序
+ *     方式2：根据创建映射时提供的 Comparator 进行排序
  *
- * <p>This implementation provides guaranteed log(n) time cost for the
- * {@code containsKey}, {@code get}, {@code put} and {@code remove}
- * operations.  Algorithms are adaptations of those in Cormen, Leiserson, and
- * Rivest's <em>Introduction to Algorithms</em>.
- *
- * <p>Note that the ordering maintained by a tree map, like any sorted map, and
- * whether or not an explicit comparator is provided, must be <em>consistent
- * with {@code equals}</em> if this sorted map is to correctly implement the
- * {@code Map} interface.  (See {@code Comparable} or {@code Comparator} for a
- * precise definition of <em>consistent with equals</em>.)  This is so because
- * the {@code Map} interface is defined in terms of the {@code equals}
- * operation, but a sorted map performs all key comparisons using its {@code
- * compareTo} (or {@code compare}) method, so two keys that are deemed equal by
- * this method are, from the standpoint of the sorted map, equal.  The behavior
- * of a sorted map <em>is</em> well-defined even if its ordering is
- * inconsistent with {@code equals}; it just fails to obey the general contract
- * of the {@code Map} interface.
- *
- * <p><strong>Note that this implementation is not synchronized.</strong>
- * If multiple threads access a map concurrently, and at least one of the
- * threads modifies the map structurally, it <em>must</em> be synchronized
- * externally.  (A structural modification is any operation that adds or
- * deletes one or more mappings; merely changing the value associated
- * with an existing key is not a structural modification.)  This is
- * typically accomplished by synchronizing on some object that naturally
- * encapsulates the map.
- * If no such object exists, the map should be "wrapped" using the
- * {@link Collections#synchronizedSortedMap Collections.synchronizedSortedMap}
- * method.  This is best done at creation time, to prevent accidental
- * unsynchronized access to the map: <pre>
- *   SortedMap m = Collections.synchronizedSortedMap(new TreeMap(...));</pre>
- *
- * <p>The iterators returned by the {@code iterator} method of the collections
- * returned by all of this class's "collection view methods" are
- * <em>fail-fast</em>: if the map is structurally modified at any time after
- * the iterator is created, in any way except through the iterator's own
- * {@code remove} method, the iterator will throw a {@link
- * ConcurrentModificationException}.  Thus, in the face of concurrent
- * modification, the iterator fails quickly and cleanly, rather than risking
- * arbitrary, non-deterministic behavior at an undetermined time in the future.
- *
- * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
- * as it is, generally speaking, impossible to make any hard guarantees in the
- * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw {@code ConcurrentModificationException} on a best-effort basis.
- * Therefore, it would be wrong to write a program that depended on this
- * exception for its correctness:   <em>the fail-fast behavior of iterators
- * should be used only to detect bugs.</em>
- *
- * <p>All {@code Map.Entry} pairs returned by methods in this class
- * and its views represent snapshots of mappings at the time they were
- * produced. They do <strong>not</strong> support the {@code Entry.setValue}
- * method. (Note however that it is possible to change mappings in the
- * associated map using {@code put}.)
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
- *
- * @param <K> the type of keys maintained by this map
- * @param <V> the type of mapped values
- *
- * @author  Josh Bloch and Doug Lea
- * @see Map
- * @see HashMap
- * @see Hashtable
- * @see Comparable
- * @see Comparator
- * @see Collection
- * @since 1.2
+ * 3、我们要想使用TreeMap存储并排序我们自定义的类，必须自己定义比较机制
+ *     方式1：类去实现java.lang.Comparable接口，并实现其compareTo()方法
+ *     方式2：写一个类去实现java.util.Comparator接口，并实现compare()方法，然后将类实例对象作为TreeMap的构造方法参数进行传参（当然也可以使用匿名内部类）
  */
 
 public class TreeMap<K,V>
@@ -113,88 +22,52 @@ public class TreeMap<K,V>
     implements NavigableMap<K,V>, Cloneable, java.io.Serializable
 {
     /**
-     * The comparator used to maintain order in this tree map, or
-     * null if it uses the natural ordering of its keys.
-     *
-     * @serial
+     * 比较器对象
      */
     private final Comparator<? super K> comparator;
 
+    // 根节点
     private transient Entry<K,V> root;
 
     /**
-     * The number of entries in the tree
+     * 集合大小
      */
     private transient int size = 0;
 
     /**
-     * The number of structural modifications to the tree.
+     * 树结构被修改的次数
      */
     private transient int modCount = 0;
 
     /**
-     * Constructs a new, empty tree map, using the natural ordering of its
-     * keys.  All keys inserted into the map must implement the {@link
-     * Comparable} interface.  Furthermore, all such keys must be
-     * <em>mutually comparable</em>: {@code k1.compareTo(k2)} must not throw
-     * a {@code ClassCastException} for any keys {@code k1} and
-     * {@code k2} in the map.  If the user attempts to put a key into the
-     * map that violates this constraint (for example, the user attempts to
-     * put a string key into a map whose keys are integers), the
-     * {@code put(Object key, Object value)} call will throw a
-     * {@code ClassCastException}.
+     * 参构造方法
      */
     public TreeMap() {
+        //默认比较机制
         comparator = null;
     }
 
     /**
-     * Constructs a new, empty tree map, ordered according to the given
-     * comparator.  All keys inserted into the map must be <em>mutually
-     * comparable</em> by the given comparator: {@code comparator.compare(k1,
-     * k2)} must not throw a {@code ClassCastException} for any keys
-     * {@code k1} and {@code k2} in the map.  If the user attempts to put
-     * a key into the map that violates this constraint, the {@code put(Object
-     * key, Object value)} call will throw a
-     * {@code ClassCastException}.
-     *
-     * @param comparator the comparator that will be used to order this map.
-     *        If {@code null}, the {@linkplain Comparable natural
-     *        ordering} of the keys will be used.
+     * 自定义比较器的构造方法
      */
     public TreeMap(Comparator<? super K> comparator) {
         this.comparator = comparator;
     }
 
     /**
-     * Constructs a new tree map containing the same mappings as the given
-     * map, ordered according to the <em>natural ordering</em> of its keys.
-     * All keys inserted into the new map must implement the {@link
-     * Comparable} interface.  Furthermore, all such keys must be
-     * <em>mutually comparable</em>: {@code k1.compareTo(k2)} must not throw
-     * a {@code ClassCastException} for any keys {@code k1} and
-     * {@code k2} in the map.  This method runs in n*log(n) time.
-     *
-     * @param  m the map whose mappings are to be placed in this map
-     * @throws ClassCastException if the keys in m are not {@link Comparable},
-     *         or are not mutually comparable
-     * @throws NullPointerException if the specified map is null
+     * 构造已知Map对象为TreeMap
      */
     public TreeMap(Map<? extends K, ? extends V> m) {
+        // 默认比较机制
         comparator = null;
         putAll(m);
     }
 
     /**
-     * Constructs a new tree map containing the same mappings and
-     * using the same ordering as the specified sorted map.  This
-     * method runs in linear time.
-     *
-     * @param  m the sorted map whose mappings are to be placed in this map,
-     *         and whose comparator is to be used to sort this map
-     * @throws NullPointerException if the specified map is null
+     * 构造已知的SortedMap对象为TreeMap
      */
     public TreeMap(SortedMap<K, ? extends V> m) {
+        // 使用已知对象的构造器
         comparator = m.comparator();
         try {
             buildFromSorted(m.size(), m.entrySet().iterator(), null, null);
@@ -204,46 +77,16 @@ public class TreeMap<K,V>
     }
 
 
-    // Query Operations
-
-    /**
-     * Returns the number of key-value mappings in this map.
-     *
-     * @return the number of key-value mappings in this map
-     */
     public int size() {
         return size;
     }
 
-    /**
-     * Returns {@code true} if this map contains a mapping for the specified
-     * key.
-     *
-     * @param key key whose presence in this map is to be tested
-     * @return {@code true} if this map contains a mapping for the
-     *         specified key
-     * @throws ClassCastException if the specified key cannot be compared
-     *         with the keys currently in the map
-     * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
-     */
     public boolean containsKey(Object key) {
         return getEntry(key) != null;
     }
 
     /**
-     * Returns {@code true} if this map maps one or more keys to the
-     * specified value.  More formally, returns {@code true} if and only if
-     * this map contains at least one mapping to a value {@code v} such
-     * that {@code (value==null ? v==null : value.equals(v))}.  This
-     * operation will probably require time linear in the map size for
-     * most implementations.
      *
-     * @param value value whose presence in this map is to be tested
-     * @return {@code true} if a mapping to {@code value} exists;
-     *         {@code false} otherwise
-     * @since 1.2
      */
     public boolean containsValue(Object value) {
         for (Entry<K,V> e = getFirstEntry(); e != null; e = successor(e))
@@ -328,19 +171,10 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns this map's entry for the given key, or {@code null} if the map
-     * does not contain an entry for the key.
-     *
-     * @return this map's entry for the given key, or {@code null} if the map
-     *         does not contain an entry for the key
-     * @throws ClassCastException if the specified key cannot be compared
-     *         with the keys currently in the map
-     * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     * 获取元素
      */
     final Entry<K,V> getEntry(Object key) {
-        // Offload comparator-based version for sake of performance
+        // 如果有自定义比较器对象，就按照自定义规则遍历二叉树
         if (comparator != null)
             return getEntryUsingComparator(key);
         if (key == null)
@@ -348,6 +182,7 @@ public class TreeMap<K,V>
         @SuppressWarnings("unchecked")
             Comparable<? super K> k = (Comparable<? super K>) key;
         Entry<K,V> p = root;
+        // 按照默认比较规则遍历二叉树
         while (p != null) {
             int cmp = k.compareTo(p.key);
             if (cmp < 0)
@@ -515,26 +350,14 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Associates the specified value with the specified key in this map.
-     * If the map previously contained a mapping for the key, the old
-     * value is replaced.
-     *
-     * @param key key with which the specified value is to be associated
-     * @param value value to be associated with the specified key
-     *
-     * @return the previous value associated with {@code key}, or
-     *         {@code null} if there was no mapping for {@code key}.
-     *         (A {@code null} return can also indicate that the map
-     *         previously associated {@code null} with {@code key}.)
-     * @throws ClassCastException if the specified key cannot be compared
-     *         with the keys currently in the map
-     * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     * 添加元素
      */
     public V put(K key, V value) {
+        // 获取根节点
         Entry<K,V> t = root;
+        // 如果根节点为空，则该元素置为根节点
         if (t == null) {
+            //键入(可能是null)检查 TODO 啥用？？？？
             compare(key, key); // type (and possibly null) check
 
             root = new Entry<>(key, value, null);
@@ -546,35 +369,52 @@ public class TreeMap<K,V>
         Entry<K,V> parent;
         // split comparator and comparable paths
         Comparator<? super K> cpr = comparator;
+        // 如果比较器对象不为空，也就是自定义了比较器
         if (cpr != null) {
+            // 循环比较并确定元素应插入的位置(也就是找到该元素的父节点)
             do {
+                // t就是root
                 parent = t;
+                // 调用比较器对象的compare()方法，该方法返回一个整数
                 cmp = cpr.compare(key, t.key);
+                // 待插入元素的key"小于"当前位置元素的key，则查询左子树
                 if (cmp < 0)
                     t = t.left;
+                // 待插入元素的key"大于"当前位置元素的key，则查询右子树
                 else if (cmp > 0)
                     t = t.right;
                 else
+                    // "相等"则替换其value。
                     return t.setValue(value);
             } while (t != null);
         }
+        // 如果比较器对象为空，使用默认的比较机制
         else {
+            //如果没有指定比较器，key为nul,抛出异常
             if (key == null)
                 throw new NullPointerException();
+            // 取出比较器对象
             @SuppressWarnings("unchecked")
                 Comparable<? super K> k = (Comparable<? super K>) key;
+            // 同样是循环比较并确定元素应插入的位置(也就是找到该元素的父节点)
             do {
                 parent = t;
+                // 同样调用比较方法并返回一个整数
                 cmp = k.compareTo(t.key);
+                // 待插入元素的key"小于"当前位置元素的key，则查询左子树
                 if (cmp < 0)
                     t = t.left;
+                // 待插入元素的key"大于"当前位置元素的key，则查询右子树
                 else if (cmp > 0)
                     t = t.right;
                 else
+                    // "相等"则替换其value。
                     return t.setValue(value);
             } while (t != null);
         }
+        // 根据key找到父节点后新建一个节点
         Entry<K,V> e = new Entry<>(key, value, parent);
+        // 根据比较的结果来确定放在左子树还是右子树
         if (cmp < 0)
             parent.left = e;
         else
@@ -586,18 +426,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Removes the mapping for this key from this TreeMap if present.
-     *
-     * @param  key key for which mapping should be removed
-     * @return the previous value associated with {@code key}, or
-     *         {@code null} if there was no mapping for {@code key}.
-     *         (A {@code null} return can also indicate that the map
-     *         previously associated {@code null} with {@code key}.)
-     * @throws ClassCastException if the specified key cannot be compared
-     *         with the keys currently in the map
-     * @throws NullPointerException if the specified key is null
-     *         and this map uses natural ordering, or its comparator
-     *         does not permit null keys
+     * 移除key节点
      */
     public V remove(Object key) {
         Entry<K,V> p = getEntry(key);
@@ -605,6 +434,7 @@ public class TreeMap<K,V>
             return null;
 
         V oldValue = p.value;
+        // 删除节点
         deleteEntry(p);
         return oldValue;
     }
@@ -654,14 +484,14 @@ public class TreeMap<K,V>
     // NavigableMap API methods
 
     /**
-     * @since 1.6
+     * 获取头节点元素
      */
     public Map.Entry<K,V> firstEntry() {
         return exportEntry(getFirstEntry());
     }
 
     /**
-     * @since 1.6
+     * 获取尾节点元素
      */
     public Map.Entry<K,V> lastEntry() {
         return exportEntry(getLastEntry());
@@ -2046,53 +1876,30 @@ public class TreeMap<K,V>
     private static final boolean BLACK = true;
 
     /**
-     * Node in the Tree.  Doubles as a means to pass key-value pairs back to
-     * user (see Map.Entry).
+     * 静态内部类用来表示节点类型
      */
-
     static final class Entry<K,V> implements Map.Entry<K,V> {
-        K key;
-        V value;
-        Entry<K,V> left;
-        Entry<K,V> right;
-        Entry<K,V> parent;
+        K key; // 键
+        V value;  // 值
+        Entry<K,V> left; // 指向左子树的引用（指针）
+        Entry<K,V> right; // 指向右子树的引用（指针）
+        Entry<K,V> parent; // 指向父节点的引用（指针）
         boolean color = BLACK;
 
-        /**
-         * Make a new cell with given key, value, and parent, and with
-         * {@code null} child links, and BLACK color.
-         */
         Entry(K key, V value, Entry<K,V> parent) {
             this.key = key;
             this.value = value;
             this.parent = parent;
         }
 
-        /**
-         * Returns the key.
-         *
-         * @return the key
-         */
         public K getKey() {
             return key;
         }
 
-        /**
-         * Returns the value associated with the key.
-         *
-         * @return the value associated with the key
-         */
         public V getValue() {
             return value;
         }
 
-        /**
-         * Replaces the value currently associated with the key with the given
-         * value.
-         *
-         * @return the value associated with the key before this method was
-         *         called
-         */
         public V setValue(V value) {
             V oldValue = this.value;
             this.value = value;
@@ -2119,8 +1926,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns the first Entry in the TreeMap (according to the TreeMap's
-     * key-sort function).  Returns null if the TreeMap is empty.
+     * 获取头节点元素
      */
     final Entry<K,V> getFirstEntry() {
         Entry<K,V> p = root;
@@ -2131,8 +1937,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns the last Entry in the TreeMap (according to the TreeMap's
-     * key-sort function).  Returns null if the TreeMap is empty.
+     * 获取尾节点元素
      */
     final Entry<K,V> getLastEntry() {
         Entry<K,V> p = root;
@@ -2296,14 +2101,13 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Delete node p, and then rebalance the tree.
+     * 删除节点
      */
     private void deleteEntry(Entry<K,V> p) {
         modCount++;
         size--;
 
-        // If strictly internal, copy successor's element to p and then make p
-        // point to successor.
+        //判断p的左右节点是否都有值
         if (p.left != null && p.right != null) {
             Entry<K,V> s = successor(p);
             p.key = s.key;
